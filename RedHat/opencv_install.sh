@@ -22,29 +22,15 @@ echo "Installing Dependencies"
 sudo yum -y install http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 sudo yum -y groupinstall "Development Tools"
 sudo yum -y install wget unzip opencv opencv-devel gtk2-devel cmake
-if [ ! -f $downloadfile ]; then
-	echo "Downloading OpenCV" $version
-	wget -O $downloadfile http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/$version/$downloadfile/download
-fi
-if [ ! -d opencv-$version ]; then
-	echo "Installing OpenCV" $version
-	echo $downloadfile | grep ".zip"
-	if [ $? -eq 0 ]; then
-		unzip $downloadfile
-	else
-		tar -xvf $downloadfile
-	fi
-fi
-cd opencv-$version
-cmake --version | grep " 2.6"
-if [ $? -eq 0 ]; then
-	# Delete lines beginning with string(MD5 based on incompatibility with cmake 2.6.  See 
-	# http://answers.opencv.org/question/24095/building-opencv-247-on-centos-6/
-	sed  -i '/string(MD5/d' cmake/cl2cpp.cmake
-fi
-mkdir -p build
+
+wget https://github.com/opencv/opencv/archive/${version}.zip
+unzip ${version}.zip
+rm ${version}.zip
+mv opencv-${version} OpenCV
+cd OpenCV
+mkdir build
 cd build
-cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local ..
+cmake -DWITH_QT=ON -DWITH_OPENGL=ON -DFORCE_VTK=ON -DWITH_TBB=ON -DWITH_GDAL=ON -DWITH_XINE=ON -DBUILD_EXAMPLES=ON -DENABLE_PRECOMPILED_HEADERS=OFF ..
 make -j 4
 sudo make install
 sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
